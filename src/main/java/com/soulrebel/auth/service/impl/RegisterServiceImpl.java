@@ -32,12 +32,6 @@ public class RegisterServiceImpl implements RegisterService {
 
         var user = createAndSave (registerRequest);
 
-        /*user = repository.save (User.of (
-                registerRequest.firstName (),
-                registerRequest.lastName (),
-                registerRequest.email (),
-                encoder.encode (registerRequest.password ())
-        ));*/
         return new RegisterResponse (user.getId (), user.getFirstName (), user.getLastName (), user.getEmail ());
     }
 
