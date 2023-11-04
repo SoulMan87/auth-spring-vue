@@ -1,5 +1,7 @@
 package com.soulrebel.auth.service.impl;
 
+import com.soulrebel.auth.domain.LoginRequest;
+import com.soulrebel.auth.domain.LoginResponse;
 import com.soulrebel.auth.domain.RegisterRequest;
 import com.soulrebel.auth.domain.RegisterResponse;
 import com.soulrebel.auth.domain.User;
@@ -35,5 +37,17 @@ public class RegisterServiceImpl implements RegisterService {
                 encoder.encode (registerRequest.password ())
         ));
         return new RegisterResponse (user.getId (), user.getFirstName (), user.getLastName (), user.getEmail ());
+    }
+
+    @Override
+    public LoginResponse login(LoginRequest loginRequest) {
+
+        var user = repository.findByEmail (loginRequest.email ())
+                .orElseThrow (() -> new ResponseStatusException (HttpStatus.BAD_REQUEST));
+
+        if (!encoder.matches (loginRequest.password (), user.getPassword ()))
+            throw new ResponseStatusException (HttpStatus.BAD_REQUEST, "invalid credentials");
+
+        return new LoginResponse (user.getId (), user.getFirstName (), user.getLastName (), user.getEmail ());
     }
 }
