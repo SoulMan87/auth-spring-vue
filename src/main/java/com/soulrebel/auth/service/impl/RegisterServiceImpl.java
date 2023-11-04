@@ -9,39 +9,59 @@ import com.soulrebel.auth.exception.EmailAlreadyExistsError;
 import com.soulrebel.auth.exception.InvalidCredentialsError;
 import com.soulrebel.auth.exception.PasswordsDontMatchError;
 import com.soulrebel.auth.repository.UserRepository;
+import com.soulrebel.auth.service.Login;
 import com.soulrebel.auth.service.RegisterService;
-import com.soulrebel.auth.service.Token;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.relational.core.conversion.DbActionExecutionException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Objects;
 
 @Service
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+
 public class RegisterServiceImpl implements RegisterService {
 
     private final UserRepository repository;
-
     private final PasswordEncoder encoder;
+    private final String accessTokenSecret;
+    private final String refreshTokenSecret;
 
-    @Override
-    public LoginResponse login(final LoginRequest loginRequest) {
-
-        final var token = generateToken (loginRequest.email (), loginRequest.password ());
-        return new LoginResponse (token.getToken ());
+    public RegisterServiceImpl(UserRepository repository, PasswordEncoder encoder,
+                               @Value("${application.security.access-token-secret}")
+                               String accessTokenSecret,
+                               @Value("${application.security.refresh-token-secret}")
+                               String refreshTokenSecret) {
+        this.repository = repository;
+        this.encoder = encoder;
+        this.accessTokenSecret = accessTokenSecret;
+        this.refreshTokenSecret = refreshTokenSecret;
     }
 
-    private Token generateToken(final String email, final String password) {
+    @Override
+    public LoginResponse login(final LoginRequest loginRequest, final HttpServletResponse response) {
+        final var login = generateToken (loginRequest.email (), loginRequest.password ());
+        setRefreshTokenCookie (response, login.getRefreshToken ().getToken ());
+        return new LoginResponse (login.getAccessToken ().getToken ());
+    }
+
+    private void setRefreshTokenCookie(final HttpServletResponse response, final String refreshToken) {
+        final Cookie cookie = new Cookie ("refresh_token", refreshToken);
+        cookie.setMaxAge (3600);
+        cookie.setHttpOnly (true);
+        cookie.setPath ("/api");
+        response.addCookie (cookie);
+    }
+
+    private Login generateToken(final String email, final String password) {
         final var user = repository.findByEmail (email)
                 .orElseThrow (InvalidCredentialsError::new);
 
         if (!encoder.matches (password, user.getPassword ()))
             throw new InvalidCredentialsError ();
-        return Token.of (user.getId (), 10L,
-                "very_long_and_secure_and_safe_access_key");
+        return Login.of (user.getId (), accessTokenSecret, refreshTokenSecret);
     }
 
     @Override

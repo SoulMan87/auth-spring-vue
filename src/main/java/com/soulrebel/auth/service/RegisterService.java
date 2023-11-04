@@ -6,10 +6,13 @@ import com.soulrebel.auth.domain.RegisterRequest;
 import com.soulrebel.auth.domain.RegisterResponse;
 import org.springframework.stereotype.Component;
 
+import javax.servlet.http.HttpServletResponse;
+
 @Component
 public interface RegisterService {
 
-    LoginResponse login(LoginRequest loginRequest);
+
+    LoginResponse login(LoginRequest loginRequest, HttpServletResponse response);
 
     RegisterResponse registerUser(RegisterRequest registerRequest);
 

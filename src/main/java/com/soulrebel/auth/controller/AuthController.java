@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletResponse;
+
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
@@ -27,7 +29,7 @@ public class AuthController {
     }
 
     @PostMapping(value = "/login")
-    public LoginResponse login(@RequestBody LoginRequest loginRequest) {
-        return new ResponseEntity<> (registerService.login (loginRequest), HttpStatus.OK).getBody ();
+    public LoginResponse login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+        return new ResponseEntity<> (registerService.login (loginRequest, response), HttpStatus.OK).getBody ();
     }
 }
