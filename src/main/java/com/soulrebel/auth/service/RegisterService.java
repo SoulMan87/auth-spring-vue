@@ -9,7 +9,8 @@ import org.springframework.stereotype.Component;
 @Component
 public interface RegisterService {
 
+    LoginResponse login(LoginRequest loginRequest);
+
     RegisterResponse registerUser(RegisterRequest registerRequest);
 
-    LoginResponse login(LoginRequest loginRequest);
 }
