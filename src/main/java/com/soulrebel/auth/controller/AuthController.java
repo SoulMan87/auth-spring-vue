@@ -1,6 +1,8 @@
 package com.soulrebel.auth.controller;
 
-import com.soulrebel.auth.entity.User;
+import com.soulrebel.auth.domain.RegisterRequest;
+import com.soulrebel.auth.domain.RegisterResponse;
+import com.soulrebel.auth.domain.User;
 import com.soulrebel.auth.repository.UserRepository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,7 +26,15 @@ public class AuthController {
     }
 
     @PostMapping(value = "/register")
-    public User register(@RequestBody User user) {
-        return repository.save (user);
+    public RegisterResponse register(@RequestBody RegisterRequest registerRequest) {
+        var user = repository.save (
+                User.of (
+                        registerRequest.firstName (),
+                        registerRequest.lastName (),
+                        registerRequest.email (),
+                        registerRequest.password ()
+                )
+        );
+        return new RegisterResponse (user.getId (), user.getFirstName (), user.getLastName (), user.getEmail ());
     }
 }

@@ -1,4 +1,4 @@
-package com.soulrebel.auth.entity;
+package com.soulrebel.auth.domain;
 
 import lombok.Getter;
 import lombok.Setter;
