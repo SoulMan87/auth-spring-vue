@@ -5,20 +5,22 @@ import com.soulrebel.auth.domain.RegisterResponse;
 import com.soulrebel.auth.domain.User;
 import com.soulrebel.auth.repository.UserRepository;
 import com.soulrebel.auth.service.RegisterService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Objects;
 
 @Service
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class RegisterServiceImpl implements RegisterService {
 
     private final UserRepository repository;
 
-    public RegisterServiceImpl(UserRepository repository) {
-        this.repository = repository;
-    }
+    private final PasswordEncoder encoder;
 
     @Override
     public RegisterResponse registerUser(RegisterRequest registerRequest) {
@@ -30,7 +32,7 @@ public class RegisterServiceImpl implements RegisterService {
                 registerRequest.firstName (),
                 registerRequest.lastName (),
                 registerRequest.email (),
-                registerRequest.password ()
+                encoder.encode (registerRequest.password ())
         ));
         return new RegisterResponse (user.getId (), user.getFirstName (), user.getLastName (), user.getEmail ());
     }
