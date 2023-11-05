@@ -8,9 +8,11 @@ import com.soulrebel.auth.domain.User;
 import com.soulrebel.auth.exception.EmailAlreadyExistsError;
 import com.soulrebel.auth.exception.InvalidCredentialsError;
 import com.soulrebel.auth.exception.PasswordsDontMatchError;
+import com.soulrebel.auth.exception.UserNotFoundError;
 import com.soulrebel.auth.repository.UserRepository;
 import com.soulrebel.auth.service.Login;
 import com.soulrebel.auth.service.RegisterService;
+import com.soulrebel.auth.service.Token;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.relational.core.conversion.DbActionExecutionException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -71,6 +73,12 @@ public class RegisterServiceImpl implements RegisterService {
         final var user = createAndSave (registerRequest);
 
         return new RegisterResponse (user.getId (), user.getFirstName (), user.getLastName (), user.getEmail ());
+    }
+
+    @Override
+    public User getUserFromToken(String token) {
+        return repository.findById (Token.from (token, accessTokenSecret))
+                .orElseThrow (UserNotFoundError::new);
     }
 
     private void validatePasswordMatching(final RegisterRequest registerRequest) {

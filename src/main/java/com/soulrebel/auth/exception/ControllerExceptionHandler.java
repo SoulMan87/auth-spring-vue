@@ -23,11 +23,40 @@ public class ControllerExceptionHandler {
         return new ResponseEntity<> (emailAlreadyExistsErrorBuilder (exception, request), HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(NoBearerTokenError.class)
+    public ResponseEntity<ErrorMessage> noBearerTokenError(NoBearerTokenError exception
+            , WebRequest request) {
+        return new ResponseEntity<> (noBearerTokenErrorBuilder (exception, request), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(UserNotFoundError.class)
+    public ResponseEntity<ErrorMessage> noBearerTokenError(UserNotFoundError exception
+            , WebRequest request) {
+        return new ResponseEntity<> (userNotFoundErrorBuilder (exception, request), HttpStatus.NOT_FOUND);
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorMessage> globalExceptionHandler(Exception exception, WebRequest request) {
         return new ResponseEntity<> (errorMessageGlobalExceptionHandlerBuilder (exception, request),
                 HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    private ErrorMessage noBearerTokenErrorBuilder(Exception exception, WebRequest request) {
+        return ErrorMessage.builder ()
+                .statusCode (HttpStatus.INTERNAL_SERVER_ERROR.value ())
+                .timestamp (new Date ())
+                .message (exception.getMessage ())
+                .description (request.getDescription (false))
+                .build ();
+    }
+
+    private ErrorMessage userNotFoundErrorBuilder(Exception exception, WebRequest request) {
+        return ErrorMessage.builder ()
+                .statusCode (HttpStatus.INTERNAL_SERVER_ERROR.value ())
+                .timestamp (new Date ())
+                .message (exception.getMessage ())
+                .description (request.getDescription (false))
+                .build ();
     }
 
     private ErrorMessage errorMessageGlobalExceptionHandlerBuilder(Exception exception, WebRequest request) {
