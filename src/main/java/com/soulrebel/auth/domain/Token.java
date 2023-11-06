@@ -1,4 +1,4 @@
-package com.soulrebel.auth.service;
+package com.soulrebel.auth.domain;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -31,6 +31,10 @@ public class Token {
                                 .encodeToString (secretKey.getBytes (StandardCharsets.UTF_8)))
                         .compact ()
         );
+    }
+
+    public static Token of(String token) {
+        return new Token (token);
     }
 
     public static Long from(String token, String secretKey) {

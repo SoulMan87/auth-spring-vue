@@ -1,5 +1,6 @@
 package com.soulrebel.auth.service;
 
+import com.soulrebel.auth.domain.Login;
 import com.soulrebel.auth.domain.LoginRequest;
 import com.soulrebel.auth.domain.LoginResponse;
 import com.soulrebel.auth.domain.RegisterRequest;
@@ -18,4 +19,6 @@ public interface RegisterService {
     RegisterResponse registerUser(RegisterRequest registerRequest);
 
     User getUserFromToken(String token);
+
+    Login refreshAccess(String refreshToken);
 }

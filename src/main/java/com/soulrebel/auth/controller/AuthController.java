@@ -2,6 +2,7 @@ package com.soulrebel.auth.controller;
 
 import com.soulrebel.auth.domain.LoginRequest;
 import com.soulrebel.auth.domain.LoginResponse;
+import com.soulrebel.auth.domain.RefreshResponse;
 import com.soulrebel.auth.domain.RegisterRequest;
 import com.soulrebel.auth.domain.RegisterResponse;
 import com.soulrebel.auth.domain.UserResponse;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,5 +43,10 @@ public class AuthController {
     @GetMapping(value = "/user")
     public UserResponse user(HttpServletRequest request) {
         return new ResponseEntity<> (userService.createUser (request), HttpStatus.OK).getBody ();
+    }
+
+    @PostMapping(value = "/refresh")
+    public RefreshResponse refresh(@CookieValue("refresh_token") String refreshToken) {
+        return new RefreshResponse (registerService.refreshAccess (refreshToken).getRefreshToken ().getToken ());
     }
 }
