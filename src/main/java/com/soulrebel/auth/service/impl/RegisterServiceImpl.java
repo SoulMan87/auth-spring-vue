@@ -3,6 +3,7 @@ package com.soulrebel.auth.service.impl;
 import com.soulrebel.auth.domain.Login;
 import com.soulrebel.auth.domain.LoginRequest;
 import com.soulrebel.auth.domain.LoginResponse;
+import com.soulrebel.auth.domain.LogoutResponse;
 import com.soulrebel.auth.domain.RegisterRequest;
 import com.soulrebel.auth.domain.RegisterResponse;
 import com.soulrebel.auth.domain.Token;
@@ -70,6 +71,16 @@ public class RegisterServiceImpl implements RegisterService {
         var userId = Token.from (refreshToken, refreshTokenSecret);
 
         return Login.of (userId, accessTokenSecret, Token.of (refreshToken));
+    }
+
+    @Override
+    public LogoutResponse logout(HttpServletResponse response) {
+        Cookie cookie = new Cookie ("refresh_token", null);
+        cookie.setMaxAge (0);
+        cookie.setHttpOnly (true);
+
+        response.addCookie (cookie);
+        return new LogoutResponse ("success");
     }
 
     private Login generateToken(final String email, final String password) {

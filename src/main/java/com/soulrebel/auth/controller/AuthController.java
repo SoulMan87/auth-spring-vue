@@ -2,6 +2,7 @@ package com.soulrebel.auth.controller;
 
 import com.soulrebel.auth.domain.LoginRequest;
 import com.soulrebel.auth.domain.LoginResponse;
+import com.soulrebel.auth.domain.LogoutResponse;
 import com.soulrebel.auth.domain.RefreshResponse;
 import com.soulrebel.auth.domain.RegisterRequest;
 import com.soulrebel.auth.domain.RegisterResponse;
@@ -48,5 +49,10 @@ public class AuthController {
     @PostMapping(value = "/refresh")
     public RefreshResponse refresh(@CookieValue("refresh_token") String refreshToken) {
         return new RefreshResponse (registerService.refreshAccess (refreshToken).getRefreshToken ().getToken ());
+    }
+
+    @PostMapping(value = "/logout")
+    public LogoutResponse logout(HttpServletResponse response) {
+        return new ResponseEntity<> (registerService.logout (response), HttpStatus.OK).getBody ();
     }
 }
