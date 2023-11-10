@@ -1,13 +1,13 @@
 package com.soulrebel.auth.service.impl;
 
+import com.soulrebel.auth.domain.Jwt;
 import com.soulrebel.auth.domain.Login;
-import com.soulrebel.auth.domain.LoginRequest;
-import com.soulrebel.auth.domain.LoginResponse;
-import com.soulrebel.auth.domain.LogoutResponse;
-import com.soulrebel.auth.domain.RegisterRequest;
-import com.soulrebel.auth.domain.RegisterResponse;
-import com.soulrebel.auth.domain.Token;
 import com.soulrebel.auth.domain.User;
+import com.soulrebel.auth.domain.dto.LoginRequest;
+import com.soulrebel.auth.domain.dto.LoginResponse;
+import com.soulrebel.auth.domain.dto.LogoutResponse;
+import com.soulrebel.auth.domain.dto.RegisterRequest;
+import com.soulrebel.auth.domain.dto.RegisterResponse;
 import com.soulrebel.auth.exception.EmailAlreadyExistsError;
 import com.soulrebel.auth.exception.InvalidCredentialsError;
 import com.soulrebel.auth.exception.PasswordsDontMatchError;
@@ -46,8 +46,8 @@ public class RegisterServiceImpl implements RegisterService {
     @Override
     public LoginResponse login(final LoginRequest loginRequest, final HttpServletResponse response) {
         final var login = generateToken (loginRequest.email (), loginRequest.password ());
-        setRefreshTokenCookie (response, login.getRefreshToken ().getToken ());
-        return new LoginResponse (login.getAccessToken ().getToken ());
+        setRefreshTokenCookie (response, login.getRefreshJwt ().getToken ());
+        return new LoginResponse (login.getAccessJwt ().getToken ());
     }
 
     @Override
@@ -61,16 +61,16 @@ public class RegisterServiceImpl implements RegisterService {
 
     @Override
     public User getUserFromToken(String token) {
-        return repository.findById (Token.from (token, accessTokenSecret))
+        return repository.findById (Jwt.from (token, accessTokenSecret).getUserId ())
                 .orElseThrow (UserNotFoundError::new);
     }
 
     @Override
     public Login refreshAccess(String refreshToken) {
 
-        var userId = Token.from (refreshToken, refreshTokenSecret);
+        var refreshJwt = Jwt.from (refreshToken, refreshTokenSecret);
 
-        return Login.of (userId, accessTokenSecret, Token.of (refreshToken));
+        return Login.of (refreshJwt.getUserId (), accessTokenSecret, refreshJwt);
     }
 
     @Override

@@ -1,11 +1,11 @@
 package com.soulrebel.auth.service;
 
 import com.soulrebel.auth.domain.Login;
-import com.soulrebel.auth.domain.LoginRequest;
-import com.soulrebel.auth.domain.LoginResponse;
-import com.soulrebel.auth.domain.LogoutResponse;
-import com.soulrebel.auth.domain.RegisterRequest;
-import com.soulrebel.auth.domain.RegisterResponse;
+import com.soulrebel.auth.domain.dto.LoginRequest;
+import com.soulrebel.auth.domain.dto.LoginResponse;
+import com.soulrebel.auth.domain.dto.LogoutResponse;
+import com.soulrebel.auth.domain.dto.RegisterRequest;
+import com.soulrebel.auth.domain.dto.RegisterResponse;
 import com.soulrebel.auth.domain.User;
 import org.springframework.stereotype.Component;
 

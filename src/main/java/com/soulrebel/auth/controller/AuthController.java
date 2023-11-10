@@ -1,12 +1,12 @@
 package com.soulrebel.auth.controller;
 
-import com.soulrebel.auth.domain.LoginRequest;
-import com.soulrebel.auth.domain.LoginResponse;
-import com.soulrebel.auth.domain.LogoutResponse;
-import com.soulrebel.auth.domain.RefreshResponse;
-import com.soulrebel.auth.domain.RegisterRequest;
-import com.soulrebel.auth.domain.RegisterResponse;
-import com.soulrebel.auth.domain.UserResponse;
+import com.soulrebel.auth.domain.dto.LoginRequest;
+import com.soulrebel.auth.domain.dto.LoginResponse;
+import com.soulrebel.auth.domain.dto.LogoutResponse;
+import com.soulrebel.auth.domain.dto.RefreshResponse;
+import com.soulrebel.auth.domain.dto.RegisterRequest;
+import com.soulrebel.auth.domain.dto.RegisterResponse;
+import com.soulrebel.auth.domain.dto.UserResponse;
 import com.soulrebel.auth.service.RegisterService;
 import com.soulrebel.auth.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +48,7 @@ public class AuthController {
 
     @PostMapping(value = "/refresh")
     public RefreshResponse refresh(@CookieValue("refresh_token") String refreshToken) {
-        return new RefreshResponse (registerService.refreshAccess (refreshToken).getRefreshToken ().getToken ());
+        return new RefreshResponse (registerService.refreshAccess (refreshToken).getRefreshJwt ().getToken ());
     }
 
     @PostMapping(value = "/logout")

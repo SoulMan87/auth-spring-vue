@@ -1,4 +1,4 @@
-package com.soulrebel.auth.domain;
+package com.soulrebel.auth.domain.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

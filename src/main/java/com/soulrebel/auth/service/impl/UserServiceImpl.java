@@ -1,7 +1,7 @@
 package com.soulrebel.auth.service.impl;
 
 import com.soulrebel.auth.domain.User;
-import com.soulrebel.auth.domain.UserResponse;
+import com.soulrebel.auth.domain.dto.UserResponse;
 import com.soulrebel.auth.service.UserService;
 import org.springframework.stereotype.Service;
 
