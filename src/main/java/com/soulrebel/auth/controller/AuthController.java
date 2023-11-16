@@ -1,5 +1,7 @@
 package com.soulrebel.auth.controller;
 
+import com.soulrebel.auth.domain.dto.ForgotRequest;
+import com.soulrebel.auth.domain.dto.ForgotResponse;
 import com.soulrebel.auth.domain.dto.LoginRequest;
 import com.soulrebel.auth.domain.dto.LoginResponse;
 import com.soulrebel.auth.domain.dto.LogoutResponse;
@@ -54,5 +56,9 @@ public class AuthController {
     @PostMapping(value = "/logout")
     public LogoutResponse logout(@CookieValue("refresh_token") String refreshToken, HttpServletResponse response) {
         return new ResponseEntity<> (registerService.logout (response, refreshToken), HttpStatus.OK).getBody ();
+    }
+    @PostMapping(value = "/forgot")
+    public ForgotResponse forgot(@RequestBody ForgotRequest forgotRequest, HttpServletRequest request) {
+        return new ResponseEntity<> (registerService.forgot (forgotRequest, request), HttpStatus.OK).getBody ();
     }
 }

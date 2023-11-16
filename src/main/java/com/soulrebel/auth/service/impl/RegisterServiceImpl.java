@@ -4,9 +4,12 @@ import com.soulrebel.auth.domain.Jwt;
 import com.soulrebel.auth.domain.Login;
 import com.soulrebel.auth.domain.Token;
 import com.soulrebel.auth.domain.User;
+import com.soulrebel.auth.domain.dto.ForgotRequest;
+import com.soulrebel.auth.domain.dto.ForgotResponse;
 import com.soulrebel.auth.domain.dto.LoginRequest;
 import com.soulrebel.auth.domain.dto.LoginResponse;
 import com.soulrebel.auth.domain.dto.LogoutResponse;
+import com.soulrebel.auth.domain.dto.PasswordRecovery;
 import com.soulrebel.auth.domain.dto.RegisterRequest;
 import com.soulrebel.auth.domain.dto.RegisterResponse;
 import com.soulrebel.auth.exception.EmailAlreadyExistsError;
@@ -22,8 +25,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 
@@ -86,7 +91,28 @@ public class RegisterServiceImpl implements RegisterService {
         cookie.setHttpOnly (true);
 
         response.addCookie (cookie);
-        return Boolean.TRUE.equals(tokenIsRemoved) ? new LogoutResponse ("success") : new LogoutResponse ("failure");
+        return Boolean.TRUE.equals (tokenIsRemoved) ? new LogoutResponse ("success") : new LogoutResponse ("failure");
+    }
+
+    @Override
+    public ForgotResponse forgot(final ForgotRequest forgotRequest, final HttpServletRequest request) {
+        final var originUrl = request.getHeader ("Origin");
+
+        final var email = forgotRequest.email ();
+
+        forgotLogic (email, originUrl);
+
+        return new ForgotResponse ("Password recovery initiated successfully");
+    }
+
+    private void forgotLogic(final String email, final String originEmail) {
+        var token = UUID.randomUUID ().toString ().replace ("-", "");
+        var user = repository.findByEmail (email)
+                .orElseThrow (UserNotFoundError::new);
+
+        user.addPasswordRecovery (new PasswordRecovery (token));
+        repository.save (user);
+        System.out.println("Origin Email: " + originEmail);
     }
 
     private Boolean logoutLogic(final String refreshToken) {
