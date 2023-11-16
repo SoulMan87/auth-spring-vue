@@ -18,6 +18,7 @@ import com.soulrebel.auth.exception.PasswordsDontMatchError;
 import com.soulrebel.auth.exception.UnauthenticatedError;
 import com.soulrebel.auth.exception.UserNotFoundError;
 import com.soulrebel.auth.repository.UserRepository;
+import com.soulrebel.auth.service.MailService;
 import com.soulrebel.auth.service.RegisterService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.relational.core.conversion.DbActionExecutionException;
@@ -39,15 +40,19 @@ public class RegisterServiceImpl implements RegisterService {
     private final String accessTokenSecret;
     private final String refreshTokenSecret;
 
+    private final MailService mailService;
+
+
     public RegisterServiceImpl(UserRepository repository, PasswordEncoder encoder,
                                @Value("${application.security.access-token-secret}")
                                String accessTokenSecret,
                                @Value("${application.security.refresh-token-secret}")
-                               String refreshTokenSecret) {
+                               String refreshTokenSecret, MailService mailService) {
         this.repository = repository;
         this.encoder = encoder;
         this.accessTokenSecret = accessTokenSecret;
         this.refreshTokenSecret = refreshTokenSecret;
+        this.mailService = mailService;
     }
 
     @Override
@@ -111,8 +116,10 @@ public class RegisterServiceImpl implements RegisterService {
                 .orElseThrow (UserNotFoundError::new);
 
         user.addPasswordRecovery (new PasswordRecovery (token));
+
+        mailService.sendForgotMessage (email, token, originEmail);
+
         repository.save (user);
-        System.out.println("Origin Email: " + originEmail);
     }
 
     private Boolean logoutLogic(final String refreshToken) {
