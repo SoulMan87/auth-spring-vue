@@ -12,8 +12,11 @@ import com.soulrebel.auth.domain.dto.LogoutResponse;
 import com.soulrebel.auth.domain.dto.PasswordRecovery;
 import com.soulrebel.auth.domain.dto.RegisterRequest;
 import com.soulrebel.auth.domain.dto.RegisterResponse;
+import com.soulrebel.auth.domain.dto.ResetRequest;
+import com.soulrebel.auth.domain.dto.ResetResponse;
 import com.soulrebel.auth.exception.EmailAlreadyExistsError;
 import com.soulrebel.auth.exception.InvalidCredentialsError;
+import com.soulrebel.auth.exception.InvalidLinkError;
 import com.soulrebel.auth.exception.PasswordsDontMatchError;
 import com.soulrebel.auth.exception.UnauthenticatedError;
 import com.soulrebel.auth.exception.UserNotFoundError;
@@ -108,6 +111,26 @@ public class RegisterServiceImpl implements RegisterService {
         forgotLogic (email, originUrl);
 
         return new ForgotResponse ("Password recovery initiated successfully");
+    }
+
+    @Override
+    public ResetResponse reset(final ResetRequest request) {
+
+        if (!Objects.equals (request.password (), request.passwordConfirm ()))
+            throw new PasswordsDontMatchError ();
+
+        resetLogic (request.token (), request.password ());
+
+
+        return new ResetResponse ("Reset successfully");
+    }
+
+    private void resetLogic(final String token, final String newPassword) {
+        var user = repository.findByPasswordRecoveriesToken (token)
+                .orElseThrow (InvalidLinkError::new);
+        user.setPassword (encoder.encode (newPassword));
+        user.removePasswordRecoveryIf (passwordRecovery -> Objects.equals (passwordRecovery.token (), token));
+        repository.save (user);
     }
 
     private void forgotLogic(final String email, final String originEmail) {

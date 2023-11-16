@@ -8,6 +8,8 @@ import com.soulrebel.auth.domain.dto.LogoutResponse;
 import com.soulrebel.auth.domain.dto.RefreshResponse;
 import com.soulrebel.auth.domain.dto.RegisterRequest;
 import com.soulrebel.auth.domain.dto.RegisterResponse;
+import com.soulrebel.auth.domain.dto.ResetRequest;
+import com.soulrebel.auth.domain.dto.ResetResponse;
 import com.soulrebel.auth.domain.dto.UserResponse;
 import com.soulrebel.auth.service.RegisterService;
 import com.soulrebel.auth.service.UserService;
@@ -57,8 +59,14 @@ public class AuthController {
     public LogoutResponse logout(@CookieValue("refresh_token") String refreshToken, HttpServletResponse response) {
         return new ResponseEntity<> (registerService.logout (response, refreshToken), HttpStatus.OK).getBody ();
     }
+
     @PostMapping(value = "/forgot")
     public ForgotResponse forgot(@RequestBody ForgotRequest forgotRequest, HttpServletRequest request) {
         return new ResponseEntity<> (registerService.forgot (forgotRequest, request), HttpStatus.OK).getBody ();
+    }
+
+    @PostMapping(value = "/reset")
+    public ResetResponse reset(@RequestBody ResetRequest request) {
+        return new ResponseEntity<> (registerService.reset (request), HttpStatus.OK).getBody ();
     }
 }

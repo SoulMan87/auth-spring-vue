@@ -9,6 +9,8 @@ import com.soulrebel.auth.domain.dto.LoginResponse;
 import com.soulrebel.auth.domain.dto.LogoutResponse;
 import com.soulrebel.auth.domain.dto.RegisterRequest;
 import com.soulrebel.auth.domain.dto.RegisterResponse;
+import com.soulrebel.auth.domain.dto.ResetRequest;
+import com.soulrebel.auth.domain.dto.ResetResponse;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
@@ -29,4 +31,6 @@ public interface RegisterService {
     LogoutResponse logout(HttpServletResponse response, String refreshToken);
 
     ForgotResponse forgot(ForgotRequest forgotRequest, HttpServletRequest request);
+
+    ResetResponse reset(ResetRequest request);
 }
