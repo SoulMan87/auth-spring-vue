@@ -52,7 +52,7 @@ public class AuthController {
     }
 
     @PostMapping(value = "/logout")
-    public LogoutResponse logout(HttpServletResponse response) {
-        return new ResponseEntity<> (registerService.logout (response), HttpStatus.OK).getBody ();
+    public LogoutResponse logout(@CookieValue("refresh_token") String refreshToken, HttpServletResponse response) {
+        return new ResponseEntity<> (registerService.logout (response, refreshToken), HttpStatus.OK).getBody ();
     }
 }

@@ -23,5 +23,5 @@ public interface RegisterService {
 
     Login refreshAccess(String refreshToken);
 
-    LogoutResponse logout(HttpServletResponse response);
+    LogoutResponse logout(HttpServletResponse response, String refreshToken);
 }

@@ -2,6 +2,7 @@ package com.soulrebel.auth.service.impl;
 
 import com.soulrebel.auth.domain.Jwt;
 import com.soulrebel.auth.domain.Login;
+import com.soulrebel.auth.domain.Token;
 import com.soulrebel.auth.domain.User;
 import com.soulrebel.auth.domain.dto.LoginRequest;
 import com.soulrebel.auth.domain.dto.LoginResponse;
@@ -11,6 +12,7 @@ import com.soulrebel.auth.domain.dto.RegisterResponse;
 import com.soulrebel.auth.exception.EmailAlreadyExistsError;
 import com.soulrebel.auth.exception.InvalidCredentialsError;
 import com.soulrebel.auth.exception.PasswordsDontMatchError;
+import com.soulrebel.auth.exception.UnauthenticatedError;
 import com.soulrebel.auth.exception.UserNotFoundError;
 import com.soulrebel.auth.repository.UserRepository;
 import com.soulrebel.auth.service.RegisterService;
@@ -60,27 +62,45 @@ public class RegisterServiceImpl implements RegisterService {
     }
 
     @Override
-    public User getUserFromToken(String token) {
+    public User getUserFromToken(final String token) {
         return repository.findById (Jwt.from (token, accessTokenSecret).getUserId ())
                 .orElseThrow (UserNotFoundError::new);
     }
 
     @Override
-    public Login refreshAccess(String refreshToken) {
+    public Login refreshAccess(final String refreshToken) {
 
-        var refreshJwt = Jwt.from (refreshToken, refreshTokenSecret);
-
+        final var refreshJwt = Jwt.from (refreshToken, refreshTokenSecret);
+        final var user = repository.findByIdAndTokensRefreshTokenAndTokenExpiredAtGreaterThan
+                        (refreshJwt.getUserId (), refreshJwt.getToken (), refreshJwt.getExpiration ())
+                .orElseThrow (UnauthenticatedError::new);
         return Login.of (refreshJwt.getUserId (), accessTokenSecret, refreshJwt);
     }
 
     @Override
-    public LogoutResponse logout(HttpServletResponse response) {
+    public LogoutResponse logout(final HttpServletResponse response, final String refreshToken) {
+        final var tokenIsRemoved = logoutLogic (refreshToken);
+
         Cookie cookie = new Cookie ("refresh_token", null);
         cookie.setMaxAge (0);
         cookie.setHttpOnly (true);
 
         response.addCookie (cookie);
-        return new LogoutResponse ("success");
+        return Boolean.TRUE.equals(tokenIsRemoved) ? new LogoutResponse ("success") : new LogoutResponse ("failure");
+    }
+
+    private Boolean logoutLogic(final String refreshToken) {
+        final var refreshJwt = Jwt.from (refreshToken, refreshTokenSecret);
+
+        final var user = repository.findById (refreshJwt.getUserId ())
+                .orElseThrow (UnauthenticatedError::new);
+        final var tokenIsRemoved = user.removeTokenIf (token ->
+                Objects.equals (token.refreshToken (), refreshToken));
+
+        if (Boolean.FALSE.equals (tokenIsRemoved))
+            repository.save (user);
+
+        return tokenIsRemoved;
     }
 
     private Login generateToken(final String email, final String password) {
@@ -89,7 +109,16 @@ public class RegisterServiceImpl implements RegisterService {
 
         if (!encoder.matches (password, user.getPassword ()))
             throw new InvalidCredentialsError ();
-        return Login.of (user.getId (), accessTokenSecret, refreshTokenSecret);
+
+        final var login = Login.of (user.getId (), accessTokenSecret, refreshTokenSecret);
+
+        final var refreshJwt = login.getRefreshJwt ();
+
+        user.addToken (new Token (refreshJwt.getToken (), refreshJwt.getIssuedAt (), refreshJwt.getExpiration ()));
+
+        repository.save (user);
+
+        return login;
     }
 
     private void setRefreshTokenCookie(final HttpServletResponse response, final String refreshToken) {

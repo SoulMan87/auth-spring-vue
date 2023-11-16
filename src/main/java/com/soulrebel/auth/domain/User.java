@@ -16,19 +16,23 @@ import java.util.function.Predicate;
 
 @ToString
 public class User {
+    @MappedCollection
+    private final Set<Token> tokens = new HashSet<> ();
     @Getter
     @Id
     private Long id;
-    @Getter @Setter
+    @Getter
+    @Setter
     private String firstName;
-    @Getter @Setter
+    @Getter
+    @Setter
     private String lastName;
-    @Getter @Setter
+    @Getter
+    @Setter
     private String email;
-    @Getter @Setter
+    @Getter
+    @Setter
     private String password;
-    @MappedCollection
-    private final Set<Token> tokens = new HashSet<> ();
 
 
     @PersistenceConstructor
@@ -54,6 +58,10 @@ public class User {
     }
 
     public Boolean removeTokenId(Predicate<? super Token> predicate) {
+        return this.tokens.removeIf (predicate);
+    }
+
+    public Boolean removeTokenIf(Predicate<? super Token> predicate) {
         return this.tokens.removeIf (predicate);
     }
 }
