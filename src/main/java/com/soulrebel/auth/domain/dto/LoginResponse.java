@@ -1,4 +1,6 @@
 package com.soulrebel.auth.domain.dto;
 
-public record LoginResponse(String token) {
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record LoginResponse(Long id, String secret, @JsonProperty("otpauth_url") String otpAuthUrl) {
 }

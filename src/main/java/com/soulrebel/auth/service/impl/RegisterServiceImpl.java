@@ -45,7 +45,7 @@ public class RegisterServiceImpl extends RegisterCommon implements RegisterServi
     public LoginResponse login(final LoginRequest loginRequest, final HttpServletResponse response) {
         final var login = generateToken (loginRequest.email (), loginRequest.password ());
         setRefreshTokenCookie (response, login.getRefreshJwt ().getToken ());
-        return new LoginResponse (login.getAccessJwt ().getToken ());
+        return new LoginResponse (login.getAccessJwt ().getUserId (), login.getOtpSecret (), login.getOtpUrl ());
     }
 
     @Override

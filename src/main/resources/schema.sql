@@ -26,3 +26,6 @@ create table if not exists password_recovery
     user  bigint       not null,
     constraint fk_password_recovery_user foreign key (user) references user (id)
 );
+
+alter table if exists user
+    add column if not exists tfa_secret varchar (255) default '';

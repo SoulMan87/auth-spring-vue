@@ -36,23 +36,27 @@ public class User {
     @Getter
     @Setter
     private String password;
+    @Getter
+    @Setter
+    private String tfaSecret;
 
 
     @PersistenceConstructor
-    private User(Long id, String firstName, String lastName, String email, String password,
+    private User(Long id, String firstName, String lastName, String email, String password, String tfaSecret,
                  Collection<Token> tokens, Collection<PasswordRecovery> passwordRecoveries) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.password = password;
+        this.tfaSecret = tfaSecret;
         this.tokens.addAll (tokens);
         this.passwordRecoveries.addAll (passwordRecoveries);
     }
 
     public static User of(String firstName, String lastName, String email, String password) {
         return new User (null, firstName, lastName, email, password,
-                Collections.emptyList (), Collections.emptyList ());
+                null, Collections.emptyList (), Collections.emptyList ());
     }
 
     public void addToken(Token token) {
