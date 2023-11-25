@@ -1,10 +1,7 @@
 package com.soulrebel.auth.domain;
 
-import com.google.common.io.BaseEncoding;
+import dev.samstevens.totp.secret.DefaultSecretGenerator;
 import lombok.Getter;
-
-import java.nio.charset.StandardCharsets;
-import java.util.UUID;
 
 @Getter
 public class Login {
@@ -24,25 +21,31 @@ public class Login {
         this.otpUrl = otpUrl;
     }
 
-    public static Login of(Long userId, String accessSecret, String refreshSecret) {
-        var otpSecret = generateOptSecret ();
+    public static Login of(Long userId, String accessSecret, String refreshSecret, Boolean generateOtp) {
+        var otpSecret = Boolean.TRUE.equals (generateOtp) ? generateOptSecret () : null;
+        var otpUrl = Boolean.TRUE.equals (generateOtp) ? getOtpUrl (otpSecret) : null;
+
         return new Login (
                 Jwt.of (userId, ACCESS_TOKEN_VALIDITY, accessSecret),
                 Jwt.of (userId, REFRESH_TOKEN_VALIDITY, refreshSecret),
-                otpSecret, getOtpUrl (otpSecret));
+                otpSecret,
+                otpUrl
+        );
     }
 
-    public static Login of(Long userId, String accessSecret, Jwt refreshJwt) {
-        var otpSecret = generateOptSecret ();
+    public static Login of(Long userId, String accessSecret, Jwt refreshJwt, Boolean generateOtp) {
+        var otpSecret = Boolean.TRUE.equals (generateOtp) ? generateOptSecret () : null;
+        var otpUrl = Boolean.TRUE.equals (generateOtp) ? getOtpUrl (otpSecret) : null;
+
         return new Login (
                 Jwt.of (userId, 1L, accessSecret),
                 refreshJwt,
-                otpSecret, getOtpUrl (otpSecret));
+                otpSecret, otpUrl
+        );
     }
 
     private static String generateOptSecret() {
-        var uuid = UUID.randomUUID ().toString ();
-        return BaseEncoding.base32 ().encode (uuid.getBytes (StandardCharsets.UTF_8));
+        return new DefaultSecretGenerator ().generate ();
     }
 
     private static String getOtpUrl(String otpSecret) {

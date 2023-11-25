@@ -11,6 +11,8 @@ import com.soulrebel.auth.domain.dto.RegisterRequest;
 import com.soulrebel.auth.domain.dto.RegisterResponse;
 import com.soulrebel.auth.domain.dto.ResetRequest;
 import com.soulrebel.auth.domain.dto.ResetResponse;
+import com.soulrebel.auth.domain.dto.TwoFactorRequest;
+import com.soulrebel.auth.domain.dto.TwoFactorResponse;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
@@ -33,4 +35,6 @@ public interface RegisterService {
     ForgotResponse forgot(ForgotRequest forgotRequest, HttpServletRequest request);
 
     ResetResponse reset(ResetRequest request);
+
+    TwoFactorResponse twoFactorLogin(TwoFactorRequest request);
 }

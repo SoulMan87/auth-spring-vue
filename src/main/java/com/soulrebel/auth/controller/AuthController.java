@@ -10,6 +10,8 @@ import com.soulrebel.auth.domain.dto.RegisterRequest;
 import com.soulrebel.auth.domain.dto.RegisterResponse;
 import com.soulrebel.auth.domain.dto.ResetRequest;
 import com.soulrebel.auth.domain.dto.ResetResponse;
+import com.soulrebel.auth.domain.dto.TwoFactorRequest;
+import com.soulrebel.auth.domain.dto.TwoFactorResponse;
 import com.soulrebel.auth.domain.dto.UserResponse;
 import com.soulrebel.auth.service.RegisterService;
 import com.soulrebel.auth.service.UserService;
@@ -68,5 +70,10 @@ public class AuthController {
     @PostMapping(value = "/reset")
     public ResetResponse reset(@RequestBody ResetRequest request) {
         return new ResponseEntity<> (registerService.reset (request), HttpStatus.OK).getBody ();
+    }
+
+    @PostMapping(value = "/two-factor")
+    public TwoFactorResponse twoFactor(@RequestBody TwoFactorRequest twoFactorRequest) {
+        return new ResponseEntity<> (registerService.twoFactorLogin (twoFactorRequest), HttpStatus.OK).getBody ();
     }
 }

@@ -6,6 +6,8 @@ import com.soulrebel.auth.domain.Token;
 import com.soulrebel.auth.domain.User;
 import com.soulrebel.auth.domain.dto.PasswordRecovery;
 import com.soulrebel.auth.domain.dto.RegisterRequest;
+import com.soulrebel.auth.domain.dto.TwoFactorRequest;
+import com.soulrebel.auth.domain.dto.TwoFactorResponse;
 import com.soulrebel.auth.exception.EmailAlreadyExistsError;
 import com.soulrebel.auth.exception.InvalidCredentialsError;
 import com.soulrebel.auth.exception.InvalidLinkError;
@@ -14,6 +16,7 @@ import com.soulrebel.auth.exception.UnauthenticatedError;
 import com.soulrebel.auth.exception.UserNotFoundError;
 import com.soulrebel.auth.repository.UserRepository;
 import com.soulrebel.auth.service.MailService;
+import dev.samstevens.totp.code.CodeVerifier;
 import org.springframework.data.relational.core.conversion.DbActionExecutionException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -37,18 +40,20 @@ public abstract class RegisterCommon {
     protected final PasswordEncoder encoder;
     protected final String accessTokenSecret;
     protected final String refreshTokenSecret;
-
     protected final MailService mailService;
+
+    protected final CodeVerifier codeVerifier;
 
 
     protected RegisterCommon(UserRepository repository, PasswordEncoder encoder,
                              String accessTokenSecret,
-                             String refreshTokenSecret, MailService mailService) {
+                             String refreshTokenSecret, MailService mailService, CodeVerifier codeVerifier) {
         this.repository = repository;
         this.encoder = encoder;
         this.accessTokenSecret = accessTokenSecret;
         this.refreshTokenSecret = refreshTokenSecret;
         this.mailService = mailService;
+        this.codeVerifier = codeVerifier;
     }
 
     protected void resetLogic(final String token, final String newPassword) {
@@ -92,7 +97,8 @@ public abstract class RegisterCommon {
         if (!encoder.matches (password, user.getPassword ()))
             throw new InvalidCredentialsError ();
 
-        final var login = Login.of (user.getId (), accessTokenSecret, refreshTokenSecret);
+        final var login = Login.of (user.getId (), accessTokenSecret, refreshTokenSecret,
+                Objects.equals (user.getTfaSecret (), ""));
 
         final var refreshJwt = login.getRefreshJwt ();
 
@@ -129,5 +135,30 @@ public abstract class RegisterCommon {
         } catch (DbActionExecutionException exception) {
             throw new EmailAlreadyExistsError ();
         }
+    }
+
+    protected void processAuthentication(final User user, final TwoFactorRequest request) {
+        var tfaSecret = Objects.equals (user.getTfaSecret (), "") ? user.getTfaSecret () : request.secret ();
+
+        if (!codeVerifier.isValidCode (tfaSecret, request.code ())) {
+            throw new InvalidCredentialsError ();
+        }
+
+        if (Objects.equals (user.getTfaSecret (), "")) {
+            user.setTfaSecret (request.secret ());
+            repository.save (user);
+        }
+    }
+
+    protected TwoFactorResponse createTwoFactorResponse(final User user) {
+        final var login = Login.of (user.getId (), accessTokenSecret, refreshTokenSecret, false);
+
+        final var refreshJwt = login.getRefreshJwt ();
+
+        user.addToken (new Token (refreshJwt.getToken (), refreshJwt.getIssuedAt (), refreshJwt.getExpiration ()));
+
+        repository.save (user);
+
+        return new TwoFactorResponse (login.getAccessJwt ().getToken ());
     }
 }

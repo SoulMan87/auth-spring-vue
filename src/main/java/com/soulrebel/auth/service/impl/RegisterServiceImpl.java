@@ -13,12 +13,16 @@ import com.soulrebel.auth.domain.dto.RegisterRequest;
 import com.soulrebel.auth.domain.dto.RegisterResponse;
 import com.soulrebel.auth.domain.dto.ResetRequest;
 import com.soulrebel.auth.domain.dto.ResetResponse;
+import com.soulrebel.auth.domain.dto.TwoFactorRequest;
+import com.soulrebel.auth.domain.dto.TwoFactorResponse;
+import com.soulrebel.auth.exception.InvalidCredentialsError;
 import com.soulrebel.auth.exception.PasswordsDontMatchError;
 import com.soulrebel.auth.exception.UnauthenticatedError;
 import com.soulrebel.auth.exception.UserNotFoundError;
 import com.soulrebel.auth.repository.UserRepository;
 import com.soulrebel.auth.service.MailService;
 import com.soulrebel.auth.service.RegisterService;
+import dev.samstevens.totp.code.CodeVerifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -37,8 +41,8 @@ public class RegisterServiceImpl extends RegisterCommon implements RegisterServi
                                   String accessTokenSecret,
                                   @Value("${application.security.refresh-token-secret}")
                                   String refreshTokenSecret,
-                                  MailService mailService) {
-        super (repository, encoder, accessTokenSecret, refreshTokenSecret, mailService);
+                                  MailService mailService, CodeVerifier codeVerifier) {
+        super (repository, encoder, accessTokenSecret, refreshTokenSecret, mailService, codeVerifier);
     }
 
     @Override
@@ -70,7 +74,7 @@ public class RegisterServiceImpl extends RegisterCommon implements RegisterServi
         final var user = repository.findByIdAndTokensRefreshTokenAndTokenExpiredAtGreaterThan
                         (refreshJwt.getUserId (), refreshJwt.getToken (), refreshJwt.getExpiration ())
                 .orElseThrow (UnauthenticatedError::new);
-        return Login.of (refreshJwt.getUserId (), accessTokenSecret, refreshJwt);
+        return Login.of (refreshJwt.getUserId (), accessTokenSecret, refreshJwt, false);
     }
 
     @Override
@@ -106,5 +110,14 @@ public class RegisterServiceImpl extends RegisterCommon implements RegisterServi
 
 
         return new ResetResponse (RESET_SUCCESSFULLY);
+    }
+
+    @Override
+    public TwoFactorResponse twoFactorLogin(TwoFactorRequest request) {
+        final var user = repository.findById (request.id ()).orElseThrow (InvalidCredentialsError::new);
+
+        processAuthentication (user, request);
+
+        return createTwoFactorResponse (user);
     }
 }
